@@ -287,8 +287,6 @@ void writeLz()
 	putc(0,temp);
 	putc(0,temp);
 	putc(0,temp);
-	putc('D',temp);
-	putc('z',temp);
 	putc(0,temp);
 	putc('D',temp);
 	putc('z',temp);
@@ -340,7 +338,6 @@ void writeLz()
 	{
 		writeNullBytes(temp,8);
 	}
-	writeNullBytes(temp,8);
 	writeNullBytes(temp,8);
 	if(bananaCount)
 	{
