@@ -18,6 +18,10 @@ void parseConfig(char * configpath)
 	char value[80];
 	while(fgets(line,80,config)!=NULL)
 	{
+		char * newline = strchr(line,'\n');
+		if(newline!=NULL) *newline = '\0';
+		newline = strchr(line,'\r');
+		if(newline!=NULL) *newline = '\0';
 		sscanf(line," %s [ %i ] . %s . %c = %s ",ident,&index,param1,&param2,value);
 		if(strcmp(ident,"start")==0)
 		{
@@ -147,6 +151,10 @@ void parseConfig(char * configpath)
 				char valueb[80];
 				while(fgets(lineb,80,fp)!=NULL)
 				{
+					char * newline2 = strchr(lineb,'\n');
+					if(newline2!=NULL) *newline = '\0';
+					newline2 = strchr(lineb,'\r');
+					if(newline2!=NULL) *newline = '\0';
 					sscanf(lineb," frame [ %i ] . %s . %c = %s ",&indexb,param1b,&param2b,valueb);
 					if(strcmp(param1b,"pos")==0)
 					{
