@@ -19,7 +19,8 @@ void writeLz()
 	FILE * temp = fopen("./temp/tempcfg.lz.raw.part","wb");
 	int sectOffs[4]; //Index 0: Goals offset / 1: Bumpers offset / 2: Jamabars offset (Not used in smb2cnv) / 3: Bananas offset
 
-	sectOffs[0]=0x8B4;
+    //<editor-fold desc="Write goals">
+    sectOffs[0]=0x8B4;
 	for(int i=0; i<goalCount; i++)
 	{
 		int posx = toInt(goals[i].posx);
@@ -50,8 +51,10 @@ void writeLz()
 		putc((type>>8)&0xFF,temp);
 		putc(type&0xFF,temp);
 	}
+    //</editor-fold>
 
-	sectOffs[1]=ftell(temp)+0x8B4;
+    //<editor-fold desc="Write bumpers">
+    sectOffs[1]=ftell(temp)+0x8B4;
 	for(int i=0; i<bumperCount; i++)
 	{
 		int posx = toInt(bumpers[i].posx);
@@ -96,7 +99,9 @@ void writeLz()
 		putc((sclz>>8)&0xFF,temp);
 		putc(sclz&0xFF,temp);
 	}
+    //</editor-fold>
 
+    //<editor-fold desc="Write jamabars">
     sectOffs[2]=ftell(temp)+0x8B4;
     for(int i=0; i<jamabarCount; i++)
     {
@@ -142,8 +147,10 @@ void writeLz()
         putc((sclz>>8)&0xFF,temp);
         putc(sclz&0xFF,temp);
     }
+    //</editor-fold>
 
-	sectOffs[3]=ftell(temp)+0x8B4;
+    //<editor-fold desc="Write bananas">
+    sectOffs[3]=ftell(temp)+0x8B4;
 	for(int i=0; i<bananaCount; i++)
 	{
 		int posx = toInt(bananas[i].posx);
@@ -167,16 +174,21 @@ void writeLz()
 		putc((type>>8)&0xFF,temp);
 		putc(type&0xFF,temp);
 	}
+
+    //</editor-fold>
 	fclose(temp);
-	//Write animation data
-	for(int i=0; i<animCount; i++)
+
+    //<editor-fold desc="Write animation data">
+    for(int i=0; i<animCount; i++)
 	{
 		indAnimSize[i] = 0x78*animFrameCount[i] + 0x30;
 		if(i==0) cumAnimSize[i] = 0x78*animFrameCount[i] + 0x30;
 		else cumAnimSize[i] = 0x78*animFrameCount[i] + 0x30 + cumAnimSize[i-1];
 	}
-	//Write collision triangles
-	int noBgModels=0;
+    //</editor-fold>
+
+    //<editor-fold desc="Write collision triangles">
+    int noBgModels=0;
 	temp = fopen("./temp/tempcol.lz.raw.part","wb");
 	for(int i=0; i<tallyObjs; i++)
 	{
@@ -321,7 +333,10 @@ void writeLz()
 		}
 		else {noBgModels++; individualSize[i] = 0; if(i==0) {cumulativeSize[i] = 0;} else {cumulativeSize[i] = cumulativeSize[i-1];}}
 	}
+    //</editor-fold>
+
 	fclose(temp);
+
 	//Write complete (uncompressed) file
 	FILE * fpCfg = fopen("./temp/tempcfg.lz.raw.part","rb");
 	FILE * fpCol = fopen("./temp/tempcol.lz.raw.part","rb");
@@ -333,7 +348,9 @@ void writeLz()
 	int colSize = ftell(fpCol);
 	rewind(fpCol);
 	int realColSize = colSize + (0xA9C*(tallyObjs+1)) + (0x200*(colSize/0x40));
-	putc(0,temp);
+
+    //<editor-fold desc="Write header">
+    putc(0,temp);
 	putc(0,temp);
 	putc(0,temp);
 	putc(0,temp);
@@ -345,24 +362,31 @@ void writeLz()
 	putc(((tallyObjs+1)>>16)&0xFF,temp);
 	putc(((tallyObjs+1)>>8)&0xFF,temp);
 	putc((tallyObjs+1)&0xFF,temp);
+    //Offset to collision header
 	putc(((cfgSize+0x8B4)>>24)&0xFF,temp);
 	putc(((cfgSize+0x8B4)>>16)&0xFF,temp);
 	putc(((cfgSize+0x8B4)>>8)&0xFF,temp);
 	putc((cfgSize+0x8B4)&0xFF,temp);
+    //Offset to start pos data
 	putc(0,temp);
 	putc(0,temp);
 	putc(8,temp);
 	putc(0x9C,temp);
+    //Offset to fallout data
 	putc(0,temp);
 	putc(0,temp);
 	putc(8,temp);
 	putc(0xB0,temp);
+
+    //Write goals
 	if(goalCount)
 	{
+        //Count
 		putc((goalCount>>24)&0xFF,temp);
 		putc((goalCount>>16)&0xFF,temp);
 		putc((goalCount>>8)&0xFF,temp);
 		putc(goalCount&0xFF,temp);
+        //Offset
 		putc((sectOffs[0]>>24)&0xFF,temp);
 		putc((sectOffs[0]>>16)&0xFF,temp);
 		putc((sectOffs[0]>>8)&0xFF,temp);
@@ -372,12 +396,16 @@ void writeLz()
 	{
 		writeNullBytes(temp,8);
 	}
+
+    //Write bumpers
 	if(bumperCount)
 	{
+        //Count
 		putc((bumperCount>>24)&0xFF,temp);
 		putc((bumperCount>>16)&0xFF,temp);
 		putc((bumperCount>>8)&0xFF,temp);
 		putc(bumperCount&0xFF,temp);
+        //Offset
 		putc((sectOffs[1]>>24)&0xFF,temp);
 		putc((sectOffs[1]>>16)&0xFF,temp);
 		putc((sectOffs[1]>>8)&0xFF,temp);
@@ -387,12 +415,16 @@ void writeLz()
 	{
 		writeNullBytes(temp,8);
 	}
+
+    //Write jamabars
     if(jamabarCount)
     {
+        //Count
         putc((jamabarCount>>24)&0xFF,temp);
         putc((jamabarCount>>16)&0xFF,temp);
         putc((jamabarCount>>8)&0xFF,temp);
         putc(jamabarCount&0xFF,temp);
+        //Offset
         putc((sectOffs[2]>>24)&0xFF,temp);
         putc((sectOffs[2]>>16)&0xFF,temp);
         putc((sectOffs[2]>>8)&0xFF,temp);
@@ -402,12 +434,16 @@ void writeLz()
     {
         writeNullBytes(temp,8);
     }
+
+    //Write bananas
 	if(bananaCount)
 	{
+        //Count
 		putc((bananaCount>>24)&0xFF,temp);
 		putc((bananaCount>>16)&0xFF,temp);
 		putc((bananaCount>>8)&0xFF,temp);
 		putc(bananaCount&0xFF,temp);
+        //Offset
 		putc((sectOffs[3]>>24)&0xFF,temp);
 		putc((sectOffs[3]>>16)&0xFF,temp);
 		putc((sectOffs[3]>>8)&0xFF,temp);
@@ -417,72 +453,103 @@ void writeLz()
 	{
 		writeNullBytes(temp,8);
 	}
+
 	writeNullBytes(temp,32);
+    //Write number of background models
 	putc(((noBgModels)>>24)&0xFF,temp);
 	putc(((noBgModels)>>16)&0xFF,temp);
 	putc(((noBgModels)>>8)&0xFF,temp);
 	putc((noBgModels)&0xFF,temp);
+    //Write offset to background models
 	putc(((((tallyObjNames-noBgModels)*0x180)+realColSize+cfgSize+0x8B4)>>24)&0xFF,temp);
 	putc(((((tallyObjNames-noBgModels)*0x180)+realColSize+cfgSize+0x8B4)>>16)&0xFF,temp);
 	putc(((((tallyObjNames-noBgModels)*0x180)+realColSize+cfgSize+0x8B4)>>8)&0xFF,temp);
 	putc((((tallyObjNames-noBgModels)*0x180)+realColSize+cfgSize+0x8B4)&0xFF,temp);
+
 	writeNullBytes(temp,15);
 	putc(1,temp);
 	writeNullBytes(temp,28);
+
+    //Write number of level models
 	putc(((tallyObjNames-noBgModels)>>24)&0xFF,temp);
 	putc(((tallyObjNames-noBgModels)>>16)&0xFF,temp);
 	putc(((tallyObjNames-noBgModels)>>8)&0xFF,temp);
 	putc((tallyObjNames-noBgModels)&0xFF,temp);
+    //Write offset to list of level model offsets - Type A
 	putc(((((tallyObjNames-noBgModels)*0x80)+realColSize+cfgSize+0x8B4)>>24)&0xFF,temp);
 	putc(((((tallyObjNames-noBgModels)*0x80)+realColSize+cfgSize+0x8B4)>>16)&0xFF,temp);
 	putc(((((tallyObjNames-noBgModels)*0x80)+realColSize+cfgSize+0x8B4)>>8)&0xFF,temp);
 	putc((((tallyObjNames-noBgModels)*0x80)+realColSize+cfgSize+0x8B4)&0xFF,temp);
+    //Write number of level models
 	putc(((tallyObjNames-noBgModels)>>24)&0xFF,temp);
 	putc(((tallyObjNames-noBgModels)>>16)&0xFF,temp);
 	putc(((tallyObjNames-noBgModels)>>8)&0xFF,temp);
 	putc((tallyObjNames-noBgModels)&0xFF,temp);
+    //Write offset to list of level model offsets - Type B
 	putc(((((tallyObjNames-noBgModels)*0x100)+realColSize+cfgSize+0x8B4)>>24)&0xFF,temp);
 	putc(((((tallyObjNames-noBgModels)*0x100)+realColSize+cfgSize+0x8B4)>>16)&0xFF,temp);
 	putc(((((tallyObjNames-noBgModels)*0x100)+realColSize+cfgSize+0x8B4)>>8)&0xFF,temp);
 	putc((((tallyObjNames-noBgModels)*0x100)+realColSize+cfgSize+0x8B4)&0xFF,temp);
+
 	writeNullBytes(temp,2048);
-	int posx = toInt(starts[0].posx);
+    //</editor-fold> //End header
+
+    //<editor-fold desc="Write start pos">
+    int posx = toInt(starts[0].posx);
 	int posy = toInt(starts[0].posy);
 	int posz = toInt(starts[0].posz);
 	int rotx = cnvAngle(starts[0].rotx);
 	int roty = cnvAngle(starts[0].roty);
 	int rotz = cnvAngle(starts[0].rotz);
+    //Write start pos X
 	putc((posx>>24)&0xFF,temp);
 	putc((posx>>16)&0xFF,temp);
 	putc((posx>>8)&0xFF,temp);
 	putc(posx&0xFF,temp);
+    //Write start pos Y
 	putc((posy>>24)&0xFF,temp);
 	putc((posy>>16)&0xFF,temp);
 	putc((posy>>8)&0xFF,temp);
 	putc(posy&0xFF,temp);
+    //Write start pos Z
 	putc((posz>>24)&0xFF,temp);
 	putc((posz>>16)&0xFF,temp);
 	putc((posz>>8)&0xFF,temp);
 	putc(posz&0xFF,temp);
+    //Write start rot X
 	putc((rotx>>8)&0xFF,temp);
 	putc(rotx&0xFF,temp);
+    //Write start rot Y
 	putc((roty>>8)&0xFF,temp);
 	putc(roty&0xFF,temp);
+    //Write start rot Z
 	putc((rotz>>8)&0xFF,temp);
 	putc(rotz&0xFF,temp);
+    //Keep stuff 4 byte aligned
 	putc(0,temp);
 	putc(0,temp);
-	int putMe = toInt(fallOutPlane);
+    //</editor-fold>
+
+    //<editor-fold desc="Write fallout pos">
+    int putMe = toInt(fallOutPlane);
+    //Write fallout Y
 	putc((putMe>>24)&0xFF,temp);
 	putc((putMe>>16)&0xFF,temp);
 	putc((putMe>>8)&0xFF,temp);
 	putc(putMe&0xFF,temp);
-	for(int i=0; i<cfgSize; i++)
+    //</editor-fold>
+
+    //<editor-fold desc="Copy config data into file">
+    for(int i=0; i<cfgSize; i++)
 	{
 		putc(getc(fpCfg),temp);
 	}
+    //</editor-fold>
+
 	fclose(fpCfg);
-	int whereAreWe = ftell(temp);
+
+    //<editor-fold desc="Write collision header">
+    int whereAreWe = ftell(temp);
 	for(int i=0; i<(tallyObjs+1); i++)
 	{
 		int animMe = 0;
@@ -499,22 +566,27 @@ void writeLz()
 		}
 		else
 		{
+            //Write center X
 			int putMe = toInt(animCenter[animMe-10].posx);
 			putc((putMe>>24)&0xFF,temp);
 			putc((putMe>>16)&0xFF,temp);
 			putc((putMe>>8)&0xFF,temp);
 			putc(putMe&0xFF,temp);
+            //Write center Y
 			putMe = toInt(animCenter[animMe-10].posy);
 			putc((putMe>>24)&0xFF,temp);
 			putc((putMe>>16)&0xFF,temp);
 			putc((putMe>>8)&0xFF,temp);
 			putc(putMe&0xFF,temp);
+            //Write center Z
 			putMe = toInt(animCenter[animMe-10].posz);
 			putc((putMe>>24)&0xFF,temp);
 			putc((putMe>>16)&0xFF,temp);
 			putc((putMe>>8)&0xFF,temp);
 			putc(putMe&0xFF,temp);
+
 			writeNullBytes(temp,8);
+
 			if(animMe!=0)
 			{
 				putc(((realColSize+(80*tallyObjNames)+(0x80*noBgModels)+(0x180*(tallyObjNames-noBgModels))+((animMe==10)?0:cumAnimSize[animMe-11])+cfgSize+0x8B4)>>24)&0xFF,temp);
@@ -560,12 +632,16 @@ void writeLz()
 		putc(0,temp);
 		putc(0,temp);
 		putc(16,temp);
+
+        //Write goals
 		if(goalCount && (i==0))
 		{
+            //Count
 			putc((goalCount>>24)&0xFF,temp);
 			putc((goalCount>>16)&0xFF,temp);
 			putc((goalCount>>8)&0xFF,temp);
 			putc(goalCount&0xFF,temp);
+            //Offset
 			putc((sectOffs[0]>>24)&0xFF,temp);
 			putc((sectOffs[0]>>16)&0xFF,temp);
 			putc((sectOffs[0]>>8)&0xFF,temp);
@@ -575,12 +651,16 @@ void writeLz()
 		{
 			writeNullBytes(temp,8);
 		}
+
+        //Write bumpers
 		if(bumperCount && (i==0))
 		{
+            //Count
 			putc((bumperCount>>24)&0xFF,temp);
 			putc((bumperCount>>16)&0xFF,temp);
 			putc((bumperCount>>8)&0xFF,temp);
 			putc(bumperCount&0xFF,temp);
+            //Offset
 			putc((sectOffs[1]>>24)&0xFF,temp);
 			putc((sectOffs[1]>>16)&0xFF,temp);
 			putc((sectOffs[1]>>8)&0xFF,temp);
@@ -590,12 +670,16 @@ void writeLz()
 		{
 			writeNullBytes(temp,8);
 		}
+
+        //Write jamabars
         if(jamabarCount && (i==0))
         {
+            //Count
             putc((jamabarCount>>24)&0xFF,temp);
             putc((jamabarCount>>16)&0xFF,temp);
             putc((jamabarCount>>8)&0xFF,temp);
             putc(jamabarCount&0xFF,temp);
+            //Offset
             putc((sectOffs[2]>>24)&0xFF,temp);
             putc((sectOffs[2]>>16)&0xFF,temp);
             putc((sectOffs[2]>>8)&0xFF,temp);
@@ -605,12 +689,16 @@ void writeLz()
         {
             writeNullBytes(temp,8);
         }
+
+        //Write bananas
 		if(bananaCount && (i==0))
 		{
+            //Count
 			putc((bananaCount>>24)&0xFF,temp);
 			putc((bananaCount>>16)&0xFF,temp);
 			putc((bananaCount>>8)&0xFF,temp);
 			putc(bananaCount&0xFF,temp);
+            //Offset
 			putc((sectOffs[3]>>24)&0xFF,temp);
 			putc((sectOffs[3]>>16)&0xFF,temp);
 			putc((sectOffs[3]>>8)&0xFF,temp);
@@ -620,7 +708,9 @@ void writeLz()
 		{
 			writeNullBytes(temp,8);
 		}
+
 		writeNullBytes(temp,48);
+
 		if(i==0)
 		{
 			writeNullBytes(temp,8);
@@ -636,11 +726,16 @@ void writeLz()
 		}
 		writeNullBytes(temp,1024);
 	}
-	for(int i=0; i<colSize; i++)
+    //</editor-fold>
+
+    //<editor-fold desc="Copy collision data into file">
+    for(int i=0; i<colSize; i++)
 	{
 		putc(getc(fpCol),temp);
 	}
 	fclose(fpCol);
+    //</editor-fold>
+
 	whereAreWe = ftell(temp);
 	for(int k=0; k<256; k++)
 	{
