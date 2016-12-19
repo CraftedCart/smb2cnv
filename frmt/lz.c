@@ -17,7 +17,8 @@ void writeLz()
 {
 	//Write object data
 	FILE * temp = fopen("./temp/tempcfg.lz.raw.part","wb");
-	int sectOffs[4];
+	int sectOffs[4]; //Index 0: Goals offset / 1: Bumpers offset / 2: Jamabars offset (Not used in smb2cnv) / 3: Bananas offset
+
 	sectOffs[0]=0x8B4;
 	for(int i=0; i<goalCount; i++)
 	{
@@ -49,6 +50,7 @@ void writeLz()
 		putc((type>>8)&0xFF,temp);
 		putc(type&0xFF,temp);
 	}
+
 	sectOffs[1]=ftell(temp)+0x8B4;
 	for(int i=0; i<bumperCount; i++)
 	{
@@ -94,6 +96,53 @@ void writeLz()
 		putc((sclz>>8)&0xFF,temp);
 		putc(sclz&0xFF,temp);
 	}
+
+    sectOffs[2]=ftell(temp)+0x8B4;
+    for(int i=0; i<jamabarCount; i++)
+    {
+        int posx = toInt(bumpers[i].posx);
+        int posy = toInt(bumpers[i].posy);
+        int posz = toInt(bumpers[i].posz);
+        int rotx = cnvAngle(bumpers[i].rotx);
+        int roty = cnvAngle(bumpers[i].roty);
+        int rotz = cnvAngle(bumpers[i].rotz);
+        int sclx = toInt(bumpers[i].sclx);
+        int scly = toInt(bumpers[i].scly);
+        int sclz = toInt(bumpers[i].sclz);
+        putc((posx>>24)&0xFF,temp);
+        putc((posx>>16)&0xFF,temp);
+        putc((posx>>8)&0xFF,temp);
+        putc(posx&0xFF,temp);
+        putc((posy>>24)&0xFF,temp);
+        putc((posy>>16)&0xFF,temp);
+        putc((posy>>8)&0xFF,temp);
+        putc(posy&0xFF,temp);
+        putc((posz>>24)&0xFF,temp);
+        putc((posz>>16)&0xFF,temp);
+        putc((posz>>8)&0xFF,temp);
+        putc(posz&0xFF,temp);
+        putc((rotx>>8)&0xFF,temp);
+        putc(rotx&0xFF,temp);
+        putc((roty>>8)&0xFF,temp);
+        putc(roty&0xFF,temp);
+        putc((rotz>>8)&0xFF,temp);
+        putc(rotz&0xFF,temp);
+        putc(0,temp);
+        putc(0,temp);
+        putc((sclx>>24)&0xFF,temp);
+        putc((sclx>>16)&0xFF,temp);
+        putc((sclx>>8)&0xFF,temp);
+        putc(sclx&0xFF,temp);
+        putc((scly>>24)&0xFF,temp);
+        putc((scly>>16)&0xFF,temp);
+        putc((scly>>8)&0xFF,temp);
+        putc(scly&0xFF,temp);
+        putc((sclz>>24)&0xFF,temp);
+        putc((sclz>>16)&0xFF,temp);
+        putc((sclz>>8)&0xFF,temp);
+        putc(sclz&0xFF,temp);
+    }
+
 	sectOffs[3]=ftell(temp)+0x8B4;
 	for(int i=0; i<bananaCount; i++)
 	{
@@ -338,7 +387,21 @@ void writeLz()
 	{
 		writeNullBytes(temp,8);
 	}
-	writeNullBytes(temp,8);
+    if(jamabarCount)
+    {
+        putc((jamabarCount>>24)&0xFF,temp);
+        putc((jamabarCount>>16)&0xFF,temp);
+        putc((jamabarCount>>8)&0xFF,temp);
+        putc(jamabarCount&0xFF,temp);
+        putc((sectOffs[2]>>24)&0xFF,temp);
+        putc((sectOffs[2]>>16)&0xFF,temp);
+        putc((sectOffs[2]>>8)&0xFF,temp);
+        putc(sectOffs[2]&0xFF,temp);
+    }
+    else
+    {
+        writeNullBytes(temp,8);
+    }
 	if(bananaCount)
 	{
 		putc((bananaCount>>24)&0xFF,temp);
@@ -527,7 +590,21 @@ void writeLz()
 		{
 			writeNullBytes(temp,8);
 		}
-		writeNullBytes(temp,8);
+        if(jamabarCount && (i==0))
+        {
+            putc((jamabarCount>>24)&0xFF,temp);
+            putc((jamabarCount>>16)&0xFF,temp);
+            putc((jamabarCount>>8)&0xFF,temp);
+            putc(jamabarCount&0xFF,temp);
+            putc((sectOffs[2]>>24)&0xFF,temp);
+            putc((sectOffs[2]>>16)&0xFF,temp);
+            putc((sectOffs[2]>>8)&0xFF,temp);
+            putc(sectOffs[2]&0xFF,temp);
+        }
+        else
+        {
+            writeNullBytes(temp,8);
+        }
 		if(bananaCount && (i==0))
 		{
 			putc((bananaCount>>24)&0xFF,temp);
