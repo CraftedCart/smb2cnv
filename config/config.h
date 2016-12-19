@@ -84,17 +84,17 @@ extern int jamabarCount;
 extern int bananaCount;
 extern int ignoreCount;
 extern int animCount;
-start starts[16];
-goal goals[16];
-bumper bumpers[16];
-jamabar jamabars[16];
-banana bananas[16];
+start starts[256];
+goal goals[256];
+bumper bumpers[256];
+jamabar jamabars[256];
+banana bananas[256];
 float fallOutPlane;
-char ignoreList[80][80];
-char animList[80][80];
-int animFrameCount[80];
-frame animFrame[80][256];
-center animCenter[80];
+char ignoreList[256][80];
+char animList[256][80];
+int animFrameCount[256];
+frame animFrame[256][256];
+center animCenter[256];
 
 void parseConfig(char * configpath);
 
